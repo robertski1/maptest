@@ -72,8 +72,9 @@
 
         /* Active */
         [id^="st-"].is-active {
-            fill: #FF3B3B !important;
+            fill: #008000 !important;
             stroke: #ffffff !important;
+            stroke-width: 4px !important;
         }
 
 
@@ -99,7 +100,7 @@
         /* Active */
         [id^="text-"].is-active,
         [id^="text-"].is-active path {
-            fill: #FF3B3B !important;
+            fill: #008000 !important;
             stroke: #ffffff !important;
         }
 
@@ -179,7 +180,7 @@
             let mapZoomInstance; // Сохраняем инстанс, чтобы потом пересчитать размер
 
             // Файл с картой
-            fetch('test.svg')
+            fetch('maptext.svg')
                 .then(response => response.text())
                 .then(svgCode => {
                     // Вставляем SVG так, чтобы не затереть кнопку закрытия
