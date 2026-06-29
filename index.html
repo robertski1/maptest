@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-
 <head>
     <meta charset="UTF-8">
     <title>Тестирование интерактивной карты</title>
     <style>
         /* =========================================
-           БАЗОВЫЕ СТИЛИ СТРАНИЦЫ И КОНТЕЙНЕРА
+           БАЗОВЫЕ СТИЛИ СТРАНИЦЫ И КОНТЕЙНЕРА (Твои стили)
         ========================================= */
         body {
             margin: 0;
@@ -65,8 +64,6 @@
             transition: transform 0.2s ease, fill 0.2s ease, stroke 0.2s ease;
             transform-box: fill-box;
             transform-origin: center;
-            
-            
         }
 
         /* Hover */
@@ -107,6 +104,58 @@
             fill: #FF3B3B !important;
             stroke: #ffffff !important;
         }
+
+        /* =========================================
+           НОВЫЕ СТИЛИ ДЛЯ ПОПАПА И КНОПОК
+        ========================================= */
+        #open-map-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            background: #4A53FF;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            
+            /* Скрыто по умолчанию */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #modal-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 10;
+        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
@@ -118,23 +167,30 @@
     <h1>Проверка интерактивности схемы</h1>
     <p>Загрузка внешнего файла + Pan & Zoom</p>
 
-    <div id="map-container">
+    <button id="open-map-btn">Открыть карту</button>
+
+    <div id="modal-overlay">
+        <div id="map-container">
+            <button id="close-modal-btn">✕</button>
+            </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('map-container');
+            let mapZoomInstance; // Сохраняем инстанс, чтобы потом пересчитать размер
 
             // Файл с картой
             fetch('test.svg')
                 .then(response => response.text())
                 .then(svgCode => {
-                    container.innerHTML = svgCode;
+                    // Вставляем SVG так, чтобы не затереть кнопку закрытия
+                    container.insertAdjacentHTML('beforeend', svgCode);
 
                     // Зум и перемещение
                     const svgElement = container.querySelector('svg');
                     if (svgElement) {
-                        svgPanZoom(svgElement, {
+                        mapZoomInstance = svgPanZoom(svgElement, {
                             zoomEnabled: true,
                             controlIconsEnabled: true,
                             fit: true,
@@ -148,7 +204,40 @@
                 })
                 .catch(error => console.error('Ошибка загрузки SVG:', error));
 
-            // Логика кликов 
+            // ==========================================
+            // НОВАЯ ЛОГИКА ДЛЯ ПОПАПА
+            // ==========================================
+            const modal = document.getElementById('modal-overlay');
+            const openBtn = document.getElementById('open-map-btn');
+            const closeBtn = document.getElementById('close-modal-btn');
+
+            openBtn.addEventListener('click', () => {
+                modal.classList.add('is-open');
+                
+                // Пересчитываем размеры карты, так как она была скрыта
+                if (mapZoomInstance) {
+                    setTimeout(() => {
+                        mapZoomInstance.resize();
+                        mapZoomInstance.fit();
+                        mapZoomInstance.center();
+                    }, 50);
+                }
+            });
+
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('is-open');
+            });
+
+            // Закрытие по клику на темный фон
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('is-open');
+                }
+            });
+
+            // ==========================================
+            // ТВОЯ ЛОГИКА КЛИКОВ И ХОВЕРОВ
+            // ==========================================
             function toggleStation(baseName) {
                 const circles = document.querySelectorAll(`[id^="st-${baseName}"]`);
                 const text = document.getElementById(`text-${baseName}`);
@@ -165,31 +254,23 @@
                 toggleStation(cleanId);
             });
 
-            // Единая логика наведения (для текста и кружков)
             container.addEventListener('mouseover', (e) => {
                 const target = e.target.closest('[id^="text-"], [id^="st-"]');
                 if (!target) return;
 
-                // Достаем чистый корень названия
                 const cleanId = target.id.replace('st-', '').replace('text-', '').replace(/-\d+$/, '');
-
-                // Магия здесь: ищем ВСЕ элементы (и кружки, и текст), в которых есть этот корень
                 const relatedElements = document.querySelectorAll(`[id^="st-${cleanId}"], [id^="text-${cleanId}"]`);
 
-                // Вешаем класс ховера на всё найденное
                 relatedElements.forEach(el => el.classList.add('is-hovered'));
             });
 
-            // Логика когда мышка уходит
             container.addEventListener('mouseout', (e) => {
                 const target = e.target.closest('[id^="text-"], [id^="st-"]');
                 if (!target) return;
 
                 const cleanId = target.id.replace('st-', '').replace('text-', '').replace(/-\d+$/, '');
-
                 const relatedElements = document.querySelectorAll(`[id^="st-${cleanId}"], [id^="text-${cleanId}"]`);
 
-                // Снимаем класс со всего найденного
                 relatedElements.forEach(el => el.classList.remove('is-hovered'));
             });
         });
