@@ -5,9 +5,8 @@
     <meta charset="UTF-8">
     <title>Тестирование интерактивной карты</title>
     <style>
-        /* =========================================
-           БАЗОВЫЕ СТИЛИ СТРАНИЦЫ И КОНТЕЙНЕРА (Твои стили)
-        ========================================= */
+        /* Страница */
+
         body {
             margin: 0;
             padding: 20px;
@@ -44,7 +43,7 @@
             position: relative;
         }
 
-        /* Настройки курсора для карты (Pan & Zoom) */
+        /* Настройки курсора для карты */
         svg {
             width: 100%;
             height: 100%;
@@ -75,7 +74,6 @@
         [id^="st-"].is-active {
             fill: #FF3B3B !important;
             stroke: #ffffff !important;
-            /* Появляется белая обводка */
         }
 
 
@@ -85,7 +83,7 @@
         [id^="text-"] {
             cursor: pointer;
             transition: fill 0.2s ease;
-            fill: #1e293b;
+            fill: #9b9b9b;
             stroke: #ffffff;
             stroke-width: 4px;
             stroke-linejoin: round;
@@ -95,7 +93,7 @@
         /* Hover */
         [id^="text-"].is-hovered,
         [id^="text-"].is-hovered path {
-            fill: #FF3B3B !important;
+            fill: #252525 !important;
         }
 
         /* Active */
@@ -131,7 +129,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            
+
             /* Скрыто по умолчанию */
             opacity: 0;
             visibility: hidden;
@@ -172,7 +170,7 @@
     <div id="modal-overlay">
         <div id="map-container">
             <button id="close-modal-btn">✕</button>
-            </div>
+        </div>
     </div>
 
     <script>
@@ -213,7 +211,7 @@
 
             openBtn.addEventListener('click', () => {
                 modal.classList.add('is-open');
-                
+
                 // Пересчитываем размеры карты, так как она была скрыта
                 if (mapZoomInstance) {
                     setTimeout(() => {
